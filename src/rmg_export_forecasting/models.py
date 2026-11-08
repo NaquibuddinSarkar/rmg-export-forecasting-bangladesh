@@ -179,8 +179,8 @@ def expanding_window_backtest(
     """
     values = validate_monthly_series(series)
     _validate_horizon(horizon)
-    if min_train < 2 * 12 or min_train >= len(values):
-        raise ValueError("min_train must be at least 24 and smaller than series length")
+    if min_train < 3 * 12 or min_train >= len(values):
+        raise ValueError("min_train must be at least 36 months for the default yearly SARIMAX and smaller than series length")
     step = horizon if step is None else int(step)
     if step < 1:
         raise ValueError("step must be positive")
