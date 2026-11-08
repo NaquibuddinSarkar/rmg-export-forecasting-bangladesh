@@ -1,16 +1,19 @@
 # RMG Export Forecasting — Bangladesh
 
-A time-series analysis and forecasting framework for Bangladesh ready-made garment (RMG) export trends. The complete project source package is provided in [source-code.zip](./source-code.zip).
+A monthly time-series analysis and forecasting framework for Bangladesh ready-made garment (RMG) exports.
 
-## What is included
+## Project contents
 
-The source archive contains the Python forecasting package, a Jupyter walkthrough, synthetic monthly export data, seasonal-naive and statistical model benchmarks, expanding-window backtesting, scenario analysis, tests and source documentation.
-
-Methods include seasonal-naive, Holt-Winters and SARIMAX; Prophet is an optional dependency.
+- `src/rmg_export_forecasting/models.py`: seasonal-naive, Holt-Winters and SARIMAX forecasts, common-horizon scoring, expanding-window backtesting and deterministic scenario shocks.
+- `scripts/run_analysis.py`: compares candidate models on a chronological 12-month holdout.
+- `scripts/run_scenarios.py`: applies explicit scenario shocks to a SARIMAX forecast.
+- `data/demo/monthly_exports_synthetic.csv`: synthetic knitwear, woven and total series.
+- `config/scenarios.json`: illustrative upside, downside and disruption shocks.
+- `notebooks/01_rmg_export_forecasting_walkthrough.ipynb`: interactive modelling walkthrough.
+- `tests/`: manual tests for baseline, metrics and scenario calculations.
+- `source-code.zip`: downloadable CI-free source package.
 
 ## Quick start
-
-Download and extract [source-code.zip](./source-code.zip), then run from the extracted project directory:
 
 ```bash
 python -m venv .venv
@@ -23,12 +26,16 @@ python scripts/run_analysis.py
 python scripts/run_scenarios.py
 ```
 
-For optional Prophet support, install the package listed in `requirements-prophet.txt`.
+Open the notebook in JupyterLab, VS Code or Google Colab. Prophet can be added as an optional comparison with `pip install prophet`; the core workflow does not require it.
 
-## Data status
+## Data and limitations
 
-The included monthly export series is synthetic and does not represent Bangladesh's actual export statistics. The project includes a candidate-source register; replace the demonstration series with data from EPB, BGMEA or other documented official sources, recording definitions, units, release dates and revisions.
+The included monthly export series is synthetic; it is not Bangladesh's observed export history. For empirical work, source monthly statistics from EPB/BGMEA or another documented official dataset and retain the source URL, retrieval date, unit, product coverage, fiscal/calendar basis, revisions and classification notes.
 
-**No GitHub Actions or CI workflow is included, as requested.** Local tests are retained for manual verification.
+Use chronological holdouts and expanding-window backtesting. Scenario shocks are deterministic stress tests, not causal economic estimates. Historical models cannot independently anticipate trade policy, exchange-rate or geopolitical changes.
 
-[Download complete source package](./source-code.zip)
+No GitHub Actions or CI workflow is configured. Tests are available for manual local execution.
+
+## Licence
+
+MIT. See [LICENSE](LICENSE).
