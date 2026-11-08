@@ -1,0 +1,19 @@
+{
+  "baseline": {
+    "name": "Baseline",
+    "percentage_shock": 0
+  },
+  "downside": {
+    "name": "Downside scenario",
+    "percentage_shock": -8
+  },
+  "upside": {
+    "name": "Upside scenario",
+    "percentage_shock": 5
+  },
+  "disruption": {
+    "name": "Temporary disruption",
+    "percentage_shock": -15
+  },
+  "note": "Simple deterministic shocks to demonstrate scenario mechanics, not econometric causal effects."
+}
