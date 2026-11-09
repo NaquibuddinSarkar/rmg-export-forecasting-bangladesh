@@ -12,6 +12,7 @@ from rmg_export_forecasting.models import (
     seasonal_naive,
     fit_holt_winters,
     fit_sarimax_with_intervals,
+    fit_prophet,
     score_forecast,
     expanding_window_backtest,
 )
@@ -35,6 +36,13 @@ def main():
     }
     sarimax_interval, _ = fit_sarimax_with_intervals(train, horizon, alpha=0.05)
     forecasts["SARIMAX"] = sarimax_interval["forecast"]
+
+    try:
+        forecasts["Prophet"] = fit_prophet(train, horizon)
+        print("Prophet comparison included.")
+    except ImportError:
+        print("Prophet not installed; skipping optional Prophet comparison. "
+              "Install requirements-prophet.txt to enable it.")
 
     metric_rows = []
     forecast_table = pd.DataFrame({"actual": test})
