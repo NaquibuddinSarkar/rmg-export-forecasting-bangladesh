@@ -58,7 +58,10 @@ def _validate_horizon(horizon: int):
 def seasonal_naive(train: pd.Series, horizon: int, season_length: int = 12):
     """Repeat the most recent seasonal pattern for the requested horizon."""
     _validate_horizon(horizon)
-    if season_length < 1 or len(train) < season_length:
+    if not isinstance(season_length, (int, np.integer)) or season_length < 1:
+        raise ValueError("season_length must be a positive integer")
+    train = validate_monthly_series(train)
+    if len(train) < season_length:
         raise ValueError("training history must include at least one full season")
     pattern = np.asarray(train.iloc[-season_length:], dtype=float)
     values = np.resize(pattern, horizon)
@@ -73,6 +76,9 @@ def seasonal_naive(train: pd.Series, horizon: int, season_length: int = 12):
 def fit_holt_winters(train: pd.Series, horizon: int, season_length: int = 12):
     """Fit additive-trend/additive-seasonal Holt-Winters and forecast forward."""
     _validate_horizon(horizon)
+    if not isinstance(season_length, (int, np.integer)) or season_length < 1:
+        raise ValueError("season_length must be a positive integer")
+    train = validate_monthly_series(train)
     if len(train) < 2 * season_length:
         raise ValueError("Holt-Winters needs at least two complete seasonal cycles")
     model = ExponentialSmoothing(
@@ -93,6 +99,9 @@ def fit_sarimax(
 ):
     """Fit a SARIMAX model with explicitly supplied non-seasonal/seasonal orders."""
     _validate_horizon(horizon)
+    train = validate_monthly_series(train)
+    if len(seasonal_order) != 4 or not isinstance(seasonal_order[3], (int, np.integer)) or seasonal_order[3] < 1:
+        raise ValueError("seasonal_order must include a positive integer seasonal period")
     if len(train) < 3 * int(seasonal_order[3]):
         raise ValueError("SARIMAX seasonal fit needs at least three seasonal cycles")
     model = SARIMAX(
@@ -114,8 +123,11 @@ def fit_sarimax_with_intervals(
 ):
     """Return SARIMAX mean forecast and model-based prediction interval."""
     _validate_horizon(horizon)
+    train = validate_monthly_series(train)
     if not 0 < alpha < 1:
         raise ValueError("alpha must be between 0 and 1")
+    if len(seasonal_order) != 4 or not isinstance(seasonal_order[3], (int, np.integer)) or seasonal_order[3] < 1:
+        raise ValueError("seasonal_order must include a positive integer seasonal period")
     if len(train) < 3 * int(seasonal_order[3]):
         raise ValueError("SARIMAX seasonal fit needs at least three seasonal cycles")
     fitted = SARIMAX(
@@ -179,6 +191,8 @@ def expanding_window_backtest(
     """
     values = validate_monthly_series(series)
     _validate_horizon(horizon)
+    if not isinstance(min_train, (int, np.integer)):
+        raise ValueError("min_train must be an integer number of months")
     if min_train < 3 * 12 or min_train >= len(values):
         raise ValueError("min_train must be at least 36 months for the default yearly SARIMAX and smaller than series length")
     step = horizon if step is None else int(step)
@@ -261,3 +275,20 @@ def fit_prophet(train: pd.Series, horizon: int):
     future = pd.DataFrame({"ds": future_dates})
     predicted = model.predict(future)
     return pd.Series(predicted["yhat"].to_numpy(), index=future_dates, name="prophet")
+
+
+def ljung_box_diagnostics(residuals, lags=12):
+    """Return Ljung-Box residual autocorrelation diagnostics.
+
+    A small p-value suggests residual autocorrelation remains at the tested
+    lag. It does not prove that another model is superior or that the model's
+    forecasts are unbiased. Choose lags appropriate to the sample length.
+    """
+    from statsmodels.stats.diagnostic import acorr_ljungbox
+
+    values = pd.Series(residuals).dropna().astype(float)
+    if len(values) < 10 or not np.isfinite(values.to_numpy()).all():
+        raise ValueError("at least ten finite residuals are required")
+    if not isinstance(lags, (int, np.integer)) or lags < 1 or lags >= len(values):
+        raise ValueError("lags must be a positive integer smaller than residual length")
+    return acorr_ljungbox(values, lags=[lags], return_df=True)
