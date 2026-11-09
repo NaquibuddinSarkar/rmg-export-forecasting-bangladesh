@@ -195,7 +195,10 @@ def expanding_window_backtest(
         raise ValueError("min_train must be an integer number of months")
     if min_train < 3 * 12 or min_train >= len(values):
         raise ValueError("min_train must be at least 36 months for the default yearly SARIMAX and smaller than series length")
-    step = horizon if step is None else int(step)
+    if step is None:
+        step = horizon
+    elif not isinstance(step, (int, np.integer)):
+        raise ValueError("step must be an integer number of months")
     if step < 1:
         raise ValueError("step must be positive")
 
@@ -244,6 +247,7 @@ def fit_prophet(train: pd.Series, horizon: int):
     checked with the same chronological backtest as the statistical models.
     """
     _validate_horizon(horizon)
+    train = validate_monthly_series(train)
     if len(train) < 24:
         raise ValueError("Prophet demonstration requires at least 24 monthly observations")
     try:
