@@ -6,7 +6,7 @@ A monthly time-series analysis framework for Bangladesh's ready-made garment (RM
 
 ## Start here
 
-For a step-by-step explanation, read [the beginner guide](docs/BEGINNER_GUIDE.md).
+For a step-by-step explanation, read [the beginner guide](docs/BEGINNER_GUIDE.md). Check the [data dictionary](docs/DATA_DICTIONARY.md) before replacing the synthetic observations.
 
 ### Quick start
 
@@ -22,16 +22,16 @@ python scripts/run_analysis.py
 python scripts/run_scenarios.py
 ```
 
-Optional Prophet installation is documented separately in `requirements-prophet.txt`. The core comparison does not depend on Prophet.
+Optional Prophet installation is documented separately in `requirements-prophet.txt`. The core comparison does not depend on Prophet. When Prophet is installed, `scripts/run_analysis.py` adds it to the same chronological holdout comparison.
 
 ## What the project does
 
 1. Reads monthly export values with a dated monthly index.
 2. Checks that the series is suitable for monthly modelling.
 3. Holds out the most recent 12 months in chronological order.
-4. Fits a seasonal-naive baseline, Holt-Winters and SARIMAX models.
-5. Compares all models on the same holdout using MAE and RMSE.
-6. Runs expanding-window backtests to see how performance changes across forecast origins.
+4. Fits a seasonal-naive baseline, Holt-Winters and SARIMAX models; Prophet is included when installed.
+5. Compares all models on the same holdout using MAE, RMSE and sMAPE; SARIMAX prediction intervals are exported.
+6. Runs expanding-window backtests to see how performance changes across forecast origins, with the same forecast horizon at each origin.
 7. Applies explicit upside/downside shocks as what-if scenarios.
 
 The scenario tool applies a percentage adjustment to a forecast. It is a stress-test assumption, not an econometric estimate of the effect of a tariff, exchange-rate change or geopolitical event.
