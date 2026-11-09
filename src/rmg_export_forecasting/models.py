@@ -219,3 +219,45 @@ def scenario_adjustment(forecast: pd.Series, percentage_shock: float):
     if not np.isfinite(values.to_numpy()).all():
         raise ValueError("forecast values must be finite")
     return values * (1.0 + percentage_shock / 100.0)
+
+
+def fit_prophet(train: pd.Series, horizon: int):
+    """Fit an optional Prophet model to monthly export data.
+
+    Prophet is an optional dependency. Install it from requirements-prophet.txt.
+    For monthly data the function creates future month-start timestamps and
+    returns the yhat point forecast. The interval is model-based and should be
+    checked with the same chronological backtest as the statistical models.
+    """
+    _validate_horizon(horizon)
+    if len(train) < 24:
+        raise ValueError("Prophet demonstration requires at least 24 monthly observations")
+    try:
+        from prophet import Prophet
+    except ImportError as exc:
+        raise ImportError(
+            "Prophet is optional. Install it with: pip install -r requirements-prophet.txt"
+        ) from exc
+
+    frame = pd.DataFrame({
+        "ds": pd.to_datetime(train.index),
+        "y": pd.to_numeric(train, errors="raise").to_numpy(dtype=float),
+    })
+    if not np.isfinite(frame["y"].to_numpy()).all():
+        raise ValueError("Prophet training values must be finite")
+
+    model = Prophet(
+        yearly_seasonality=True,
+        weekly_seasonality=False,
+        daily_seasonality=False,
+        interval_width=0.90,
+    )
+    model.fit(frame)
+    future_dates = pd.date_range(
+        train.index[-1] + pd.offsets.MonthBegin(1),
+        periods=horizon,
+        freq="MS",
+    )
+    future = pd.DataFrame({"ds": future_dates})
+    predicted = model.predict(future)
+    return pd.Series(predicted["yhat"].to_numpy(), index=future_dates, name="prophet")
